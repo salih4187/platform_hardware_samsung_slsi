@@ -51,6 +51,7 @@ COMMON_C_INCLUDES += \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libdisplay
 endif
 
+ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
 ifeq ($(BOARD_USES_VPP), true)
 COMMON_C_INCLUDES += \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvppvirtualdisplay \
@@ -59,6 +60,7 @@ else
 COMMON_C_INCLUDES += \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvirtualdisplay \
     $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libvirtualdisplaymodule
+endif
 endif
 
 COMMON_CFLAGS := -Wno-unused-parameter -Wno-unused-function
@@ -79,7 +81,10 @@ include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES) \
-    libbinder libhdmi libvirtualdisplay libhwcutils libexynosgscaler libexynosdisplay
+    libbinder libhdmi libhwcutils libexynosgscaler libexynosdisplay
+ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
+LOCAL_SHARED_LIBRARIES += libvirtualdisplay
+endif
 LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
@@ -101,6 +106,7 @@ include $(BUILD_SHARED_LIBRARY)
 endif
 
 ############################## libvirtualdisplay ##############################
+ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
 
 include $(CLEAR_VARS)
 
@@ -140,6 +146,8 @@ LOCAL_MODULE := libvirtualdisplay
 include $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libvirtualdisplaymodule/Android.mk
 include $(TOP)/hardware/samsung_slsi/exynos/BoardConfigCFlags.mk
 include $(BUILD_SHARED_LIBRARY)
+
+endif
 
 ############################## libhdmi_dummy ##############################
 ifeq ($(BOARD_HDMI_INCAPABLE), true)
@@ -305,7 +313,10 @@ include $(CLEAR_VARS)
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES) \
-    libhardware libhardware_legacy libhwcutils libexynosdisplay libhdmi libvirtualdisplay libmpp libexynosgscaler
+    libhardware libhardware_legacy libhwcutils libexynosdisplay libhdmi libmpp libexynosgscaler
+ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
+LOCAL_SHARED_LIBRARIES += libvirtualdisplay
+endif
 LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
@@ -314,8 +325,12 @@ LOCAL_CFLAGS += -Wno-overloaded-virtual
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_C_INCLUDES += \
-	$(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libhdmimodule \
+	$(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libhdmimodule
+
+ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
+LOCAL_C_INCLUDES += \
 	$(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libvirtualdisplaymodule
+endif
 
 ifeq ($(BOARD_USES_HWC_SERVICES),true)
 	LOCAL_SHARED_LIBRARIES += libExynosHWCService
