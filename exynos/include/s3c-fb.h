@@ -98,10 +98,20 @@ struct s3c_fb_win_config {
 /* WARNING: DO NOT EDIT, AUTO-GENERATED CODE - SEE TOP FOR INSTRUCTIONS */
 };
 #define S3C_FB_MAX_WIN (5)
+#ifdef USES_WINDOW_UPDATE
+#define S3C_WIN_UPDATE_IDX S3C_FB_MAX_WIN
+/* WARNING: DO NOT EDIT, AUTO-GENERATED CODE - SEE TOP FOR INSTRUCTIONS */
+#else
+#define S3C_WIN_UPDATE_IDX (-1)
+#endif
 struct s3c_fb_win_config_data {
  int fence;
+#ifdef USES_WINDOW_UPDATE
+ struct s3c_fb_win_config config[S3C_FB_MAX_WIN + 1];
+#else
 /* WARNING: DO NOT EDIT, AUTO-GENERATED CODE - SEE TOP FOR INSTRUCTIONS */
  struct s3c_fb_win_config config[S3C_FB_MAX_WIN];
+#endif
 };
 #define S3CFB_WIN_POSITION _IOW('F', 203, struct s3c_fb_user_window)
 /* WARNING: DO NOT EDIT, AUTO-GENERATED CODE - SEE TOP FOR INSTRUCTIONS */

@@ -37,6 +37,8 @@
 #include <decon-fb.h>
 #endif
 #include "ExynosDisplayResourceManagerModule.h"
+#else
+#include <s3c-fb.h>
 #endif
 
 #define HWC_REMOVE_DEPRECATED_VERSIONS 1

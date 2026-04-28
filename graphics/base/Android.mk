@@ -23,10 +23,10 @@ build_dirs :=  \
     giantmscl
 
 ifeq ($(BOARD_USES_FIMGAPI_V5X), true)
-common_exynos_dirs += \
+build_dirs += \
    libfimg5x
 else
-common_exynos_dirs += \
+build_dirs += \
    libfimg4x
 endif
 
