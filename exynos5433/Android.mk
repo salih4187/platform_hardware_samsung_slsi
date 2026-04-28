@@ -15,8 +15,7 @@
 #
 
 ifeq ($(TARGET_SOC), exynos5433)
- exynos5433_dirs := \
-	libkeymaster \
+exynos5433_dirs := \
 	libsecurepath \
 	mobicore
 
