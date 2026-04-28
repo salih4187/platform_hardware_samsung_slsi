@@ -17,8 +17,10 @@
 
 ifeq ($(TARGET_BOARD_PLATFORM),exynos5)
 
-# exynos5_dirs := \
+ifeq ($(BOARD_USES_TRUST_KEYMASTER), true)
+exynos5_dirs := \
 	libkeymaster
+endif
 
 include $(call all-named-subdir-makefiles,$(exynos5_dirs))
 
