@@ -28,7 +28,6 @@ COMMON_C_INCLUDES := \
     $(TOP)/hardware/samsung_slsi/graphics/base/include \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1 \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libhwcutils \
-    $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvppdisplay \
     $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libhwcmodule \
     $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libdisplaymodule \
     $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libhwcutilsmodule \
@@ -40,9 +39,23 @@ else
 COMMON_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvpphdmi
 endif
 
+ifeq ($(BOARD_USES_VPP), true)
+COMMON_C_INCLUDES += \
+    $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvppdisplay
+else
+COMMON_C_INCLUDES += \
+    $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libdisplay
+endif
+
+ifeq ($(BOARD_USES_VPP), true)
 COMMON_C_INCLUDES += \
     $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvppvirtualdisplay \
     $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libvirtualdisplaymodule
+else
+COMMON_C_INCLUDES += \
+    $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvirtualdisplay \
+    $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libvirtualdisplaymodule
+endif
 
 COMMON_CFLAGS := -Wno-unused-parameter -Wno-unused-function
 COMMON_CFLAGS += -DHLOG_CODE=0
@@ -83,7 +96,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 endif
 
-############################## libvppvirtualdisplay ##############################
+############################## libvirtualdisplay ##############################
 
 include $(CLEAR_VARS)
 
@@ -97,14 +110,23 @@ LOCAL_CFLAGS += -DLOG_TAG=\"virtualdisplay\"
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvpphdmi
+else
+LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libhdmi
+endif
 
 ifeq ($(BOARD_USES_HWC_SERVICES),true)
     LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libhwcService
 endif
 
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_SRC_FILES := \
     libvppvirtualdisplay/ExynosVirtualDisplay.cpp
+else
+LOCAL_SRC_FILES := \
+    libvirtualdisplay/ExynosVirtualDisplay.cpp
+endif
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_PROPRIETARY_MODULE := $(COMMON_PROPRIETARY_MODULE)
@@ -139,7 +161,7 @@ include $(TOP)/hardware/samsung_slsi/exynos/BoardConfigCFlags.mk
 include $(TOP)/hardware/samsung_slsi/graphics/$(TARGET_SOC_BASE)/libhdmimodule/Android.mk
 include $(BUILD_SHARED_LIBRARY)
 
-############################## libvpphdmi ##############################
+############################## libhdmi ##############################
 else
 include $(CLEAR_VARS)
 
@@ -167,10 +189,15 @@ endif
 endif
 endif
 
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_SRC_FILES := \
     libvpphdmi/ExynosExternalDisplay.cpp \
     libvpphdmi/dv_timings.c
-
+else
+LOCAL_SRC_FILES := \
+    libhdmi/ExynosExternalDisplay.cpp \
+    libhdmi/dv_timings.c
+endif
 LOCAL_MODULE_TAGS := optional
 LOCAL_PROPRIETARY_MODULE := $(COMMON_PROPRIETARY_MODULE)
 LOCAL_MODULE := libhdmi
@@ -186,8 +213,14 @@ endif
 include $(CLEAR_VARS)
 
 LOCAL_PRELINK_MODULE := false
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES) \
     libmpp libexynosgscaler
+else
+LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES) \
+    libmpp libexynosgscaler libfimg libMcClient
+LOCAL_STATIC_LIBRARIES := libsecurepath
+endif
 
 LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
@@ -197,9 +230,16 @@ LOCAL_CFLAGS += -DLOG_TAG=\"hwcutils\"
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_SRC_FILES += \
 	libhwcutils/ExynosHWCUtils.cpp \
 	libhwcutils/ExynosMPPv2.cpp
+else
+LOCAL_SRC_FILES += \
+	libhwcutils/ExynosHWCUtils.cpp \
+	libhwcutils/ExynosMPP.cpp \
+	libhwcutils/ExynosG2DWrapper.cpp
+endif
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libhwcutils
@@ -222,10 +262,16 @@ LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 
+ifeq ($(BOARD_USES_VPP), true)
 LOCAL_SRC_FILES := \
 	libvppdisplay/ExynosDisplay.cpp \
 	libvppdisplay/ExynosOverlayDisplay.cpp \
 	libvppdisplay/ExynosDisplayResourceManager.cpp
+else
+LOCAL_SRC_FILES := \
+	libdisplay/ExynosDisplay.cpp \
+	libdisplay/ExynosOverlayDisplay.cpp
+endif
 
 LOCAL_PROPRIETARY_MODULE := $(COMMON_PROPRIETARY_MODULE)
 

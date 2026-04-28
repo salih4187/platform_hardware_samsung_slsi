@@ -15,13 +15,20 @@
 ifneq ($(findstring exynos, $(TARGET_SOC)),)
 build_dirs :=  \
     libhwjpeg  \
-    libfimg    \
     libscaler  \
     libgscaler \
     libacryl \
     libmpp \
     libmemtrack \
     giantmscl
+
+ifeq ($(BOARD_USES_FIMGAPI_V5X), true)
+common_exynos_dirs += \
+   libfimg5x
+else
+common_exynos_dirs += \
+   libfimg4x
+endif
 
 ifdef BOARD_HWC_VERSION
 build_dirs += $(BOARD_HWC_VERSION)

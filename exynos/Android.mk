@@ -17,6 +17,7 @@
 ifneq ($(filter exynos, $(TARGET_SOC_NAME)),)
 common_exynos_dirs := \
 	libexynosutils \
+	libcec \
 	libcsc \
 	libv4l2 \
 	libswconverter \
