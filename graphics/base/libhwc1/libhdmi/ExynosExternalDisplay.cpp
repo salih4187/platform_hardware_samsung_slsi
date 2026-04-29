@@ -1090,6 +1090,30 @@ bool ExynosExternalDisplay::isPresetSupported(unsigned int preset)
     return found;
 }
 
+int32_t ExynosExternalDisplay::getDisplayAttributes(const uint32_t attribute, uint32_t __unused config)
+{
+    switch(attribute) {
+    case HWC_DISPLAY_VSYNC_PERIOD:
+        return this->mVsyncPeriod;
+
+    case HWC_DISPLAY_WIDTH:
+        return this->mXres;
+
+    case HWC_DISPLAY_HEIGHT:
+        return this->mYres;
+
+    case HWC_DISPLAY_DPI_X:
+        return this->mXdpi;
+
+    case HWC_DISPLAY_DPI_Y:
+        return this->mYdpi;
+
+    default:
+        ALOGE("unknown display attribute %u", attribute);
+        return -EINVAL;
+    }
+}
+
 int ExynosExternalDisplay::getDisplayConfigs(uint32_t *configs, size_t *numConfigs)
 {
     *numConfigs = 1;

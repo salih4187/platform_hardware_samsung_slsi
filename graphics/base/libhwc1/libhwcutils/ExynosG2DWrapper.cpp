@@ -71,22 +71,14 @@ int formatValueHAL2G2D(int hal_format,
     return 0;
 }
 
-#ifdef USES_VIRTUAL_DISPLAY
 ExynosG2DWrapper::ExynosG2DWrapper(ExynosOverlayDisplay *display,
                                    ExynosExternalDisplay *externalDisplay,
                                    ExynosVirtualDisplay *virtualDisplay)
-#else
-ExynosG2DWrapper::ExynosG2DWrapper(ExynosOverlayDisplay *display, ExynosExternalDisplay *hdmi)
-#endif
 {
     mDisplay = display;
-#ifdef USES_VIRTUAL_DISPLAY
     mExternalDisplay = externalDisplay;
     mVirtualDisplay = virtualDisplay;
     mAllocSize = 0;
-#else
-    mExternalDisplay = hdmi;
-#endif
 }
 
 ExynosG2DWrapper::~ExynosG2DWrapper()
@@ -145,14 +137,6 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
         srcImgRect.colorFormat = src_handle->format;
     }
 
-#ifndef USES_VIRTUAL_DISPLAY
-    int w, h;
-    {
-        w = mExternalDisplay->mXres;
-        h = mExternalDisplay->mYres;
-    }
-#endif
-
     if (is_lcd) {
         dstImgRect.x = 0;
         dstImgRect.y = 0;
@@ -173,13 +157,8 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
             dstImgRect.w = WIDTH(src_layer.displayFrame);
             dstImgRect.h = HEIGHT(src_layer.displayFrame);
         }
-#ifdef USES_VIRTUAL_DISPLAY
         dstImgRect.fullW = dst_handle->stride;
         dstImgRect.fullH = dst_handle->vstride;
-#else
-        dstImgRect.fullW = w;
-        dstImgRect.fullH = h;
-#endif
         dstImgRect.colorFormat = dst_handle->format;
     }
 
@@ -267,7 +246,6 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
         if (dstAddress) {
             dstYAddress = dstAddress;
         } else {
-#ifdef USES_VIRTUAL_DISPLAY
             if (mVirtualDisplay == NULL) {
                 dstYAddress = (unsigned long)mmap(NULL, dstImageSize*dstG2d_bpp, PROT_READ | PROT_WRITE, MAP_SHARED, dst_handle->fd, 0);
                 if (dstYAddress == (unsigned long)MAP_FAILED) {
@@ -290,13 +268,6 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
                     }
                 }
             }
-#else
-            dstYAddress = (unsigned long)mmap(NULL, dstImageSize*dstG2d_bpp, PROT_READ | PROT_WRITE, MAP_SHARED, dst_handle->fd, 0);
-            if (dstYAddress == (unsigned long)MAP_FAILED) {
-                ALOGE("%s: failed to mmap for dst-Y address", __func__);
-                return -ENOMEM;
-            }
-#endif
             dst_ion_mapped = true;
         }
 
@@ -379,16 +350,12 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
         munmap((void *)srcYAddress, srcImageSize*srcG2d_bpp);
 
     if (dst_ion_mapped) {
-#ifdef USES_VIRTUAL_DISPLAY
         if (mVirtualDisplay == NULL)
             munmap((void *)dstYAddress, dstImageSize*dstG2d_bpp);
         else {
             munmap((void *)dstYAddress, dstImageSize*dstG2d_bpp);
             munmap((void *)dstCbCrAddress, dstImageSize*dstG2d_bpp / 2);
         }
-#else
-        munmap((void *)dstYAddress, dstImageSize*dstG2d_bpp);
-#endif
     }
 
     if (ret < 0) {
@@ -399,7 +366,6 @@ int ExynosG2DWrapper::runCompositor(hwc_layer_1_t &src_layer, private_handle_t *
     return 0;
 }
 
-#ifdef USES_VIRTUAL_DISPLAY
 int ExynosG2DWrapper::runSecureCompositor(hwc_layer_1_t &src_layer,
         private_handle_t *dst_handle,
         private_handle_t *secure_handle,
@@ -666,7 +632,6 @@ bool ExynosG2DWrapper::TerminateSecureG2D()
     }
     return 0;
 }
-#endif
 
 void ExynosG2DWrapper::exynos5_cleanup_g2d(int force __unused)
 {

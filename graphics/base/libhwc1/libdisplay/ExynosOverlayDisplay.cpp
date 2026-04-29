@@ -10,8 +10,8 @@
 
 ExynosOverlayDisplay::ExynosOverlayDisplay(int numMPPs, struct exynos5_hwc_composer_device_1_t *pdev)
     :   ExynosDisplay(numMPPs),
-        mLastFbWindow(NO_FB_NEEDED),
         mGrallocModule(NULL),
+        mLastFbWindow(NO_FB_NEEDED),
         mLastOverlayWindowIndex(-1),
         mLastOverlayLayerIndex(-1),
         mVirtualOverlayFlag(0),
@@ -25,15 +25,15 @@ ExynosOverlayDisplay::ExynosOverlayDisplay(int numMPPs, struct exynos5_hwc_compo
         mBypassSkipStaticLayer(false),
         mGscUsed(false),
         mCurrentGscIndex(0),
+        mBlanked(true),
         mFbNeeded(false),
         mFirstFb(0),
         mLastFb(0),
         mForceFb(false),
         mForceOverlayLayerIndex(-1),
         mRetry(false),
-        mBlanked(true),
-        mMaxWindowOverlapCnt(NUM_HW_WINDOWS),
-        mAllowedOverlays(5)
+        mAllowedOverlays(5),
+        mMaxWindowOverlapCnt(NUM_HW_WINDOWS)
 {
     mMPPs = new ExynosMPPModule*[mNumMPPs];
     for (int i = 0; i < mNumMPPs; i++)
@@ -122,7 +122,7 @@ bool ExynosOverlayDisplay::isOverlaySupported(hwc_layer_1_t &layer, size_t i)
 
     if (mMPPs[mMPPIndex]->isProcessingRequired(layer, handle->format)) {
         int downNumerator, downDenominator;
-        int downError = mMPPs[mMPPIndex]->getDownscaleRatio(&downNumerator, &downDenominator);
+        int __unused downError = mMPPs[mMPPIndex]->getDownscaleRatio(&downNumerator, &downDenominator);
         /* Check whether GSC can handle using local or M2M */
         ret = mMPPs[mMPPIndex]->isProcessingSupported(layer, handle->format, false);
         if (ret < 0) {
@@ -863,7 +863,7 @@ int ExynosOverlayDisplay::set(hwc_display_contents_1_t* contents)
 
 int ExynosOverlayDisplay::getCompModeSwitch()
 {
-    unsigned int tot_win_size = 0, updateFps = 0;
+    unsigned int __unused tot_win_size = 0, updateFps = 0;
     unsigned int lcd_size = this->mXres * this->mYres;
     uint64_t TimeStampDiff;
     float Temp;
@@ -946,7 +946,7 @@ int ExynosOverlayDisplay::getCompModeSwitch()
     return 0;
 }
 
-int32_t ExynosOverlayDisplay::getDisplayAttributes(const uint32_t attribute)
+int32_t ExynosOverlayDisplay::getDisplayAttributes(const uint32_t attribute, uint32_t __unused config)
 {
     switch(attribute) {
     case HWC_DISPLAY_VSYNC_PERIOD:

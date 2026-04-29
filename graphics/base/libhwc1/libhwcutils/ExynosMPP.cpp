@@ -3,9 +3,7 @@
 #include <utils/Trace.h>
 #include "ExynosMPP.h"
 #include "ExynosHWCUtils.h"
-#ifdef USES_VIRTUAL_DISPLAY
 #include "ExynosVirtualDisplay.h"
-#endif
 
 size_t visibleWidth(ExynosMPP *processor, hwc_layer_1_t &layer, int format,
         int xres)
@@ -774,18 +772,12 @@ int ExynosMPP::reallocateBuffers(private_handle_t *src_handle, exynos_mpp_img &d
     return ret;
 }
 
-#ifdef USES_VIRTUAL_DISPLAY
 int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sourceCrop, bool isNeedBufferAlloc)
-#else
-int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sourceCrop)
-#endif
 {
     ATRACE_CALL();
     ALOGV("configuring gscaler %u for memory-to-memory", AVAILABLE_GSC_UNITS[mIndex]);
 
-#ifdef USES_VIRTUAL_DISPLAY
     alloc_device_t* alloc_device = mDisplay->mAllocDevice;
-#endif
     private_handle_t *src_handle = private_handle_t::dynamicCast(layer.handle);
     buffer_handle_t dst_buf;
     private_handle_t *dst_handle;
@@ -820,14 +812,12 @@ int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sou
 
     setupM2MDestination(src_img, dst_img, dst_format, layer, sourceCrop);
 
-#ifdef USES_VIRTUAL_DISPLAY
     if (!isNeedBufferAlloc) {
         dst_img.x = mDisplay->mHwc->mVirtualDisplayRect.left;
         dst_img.y = mDisplay->mHwc->mVirtualDisplayRect.top;
         dst_img.w = mDisplay->mHwc->mVirtualDisplayRect.width;
         dst_img.h = mDisplay->mHwc->mVirtualDisplayRect.height;
     }
-#endif
 
     ALOGV("source configuration:");
     dumpMPPImage(src_img);
@@ -835,9 +825,7 @@ int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sou
     bool reconfigure = isSrcConfigChanged(src_img, mSrcConfig) ||
             isDstConfigChanged(dst_img, mDstConfig);
 
-#ifdef USES_VIRTUAL_DISPLAY
     if (isNeedBufferAlloc) {
-#endif
     bool realloc = mDstConfig.fw <= 0 || formatToBpp(mDstConfig.format) != formatToBpp(dst_format);
 
     /* ext_only andn int_only changes */
@@ -877,7 +865,6 @@ int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sou
     } else {
         mLastGSCLayerHandle = (ptrdiff_t)layer.handle;
     }
-#ifdef USES_VIRTUAL_DISPLAY
     } else {
         if (reconfigure && need_gsc_op_twice) {
             int dst_stride;
@@ -903,7 +890,6 @@ int ExynosMPP::processM2M(hwc_layer_1_t &layer, int dst_format, hwc_frect_t *sou
             }
         }
     }
-#endif
 
     layer.acquireFenceFd = -1;
     if (need_gsc_op_twice) {
@@ -1032,9 +1018,7 @@ err_gsc_config:
 err_alloc:
     if (src_img.acquireFenceFd >= 0)
         close(src_img.acquireFenceFd);
-#ifdef USES_VIRTUAL_DISPLAY
     if (isNeedBufferAlloc) {
-#endif
     for (size_t i = 0; i < NUM_GSC_DST_BUFS; i++) {
        if (mDstBuffers[i]) {
            android::Mutex::Autolock lock(mMutex);
@@ -1055,7 +1039,6 @@ err_alloc:
            mMidBufFence[i] = -1;
        }
     }
-#ifdef USES_VIRTUAL_DISPLAY
     } else {
         if (mMidBuffers[0]) {
             android::Mutex::Autolock lock(mMutex);
@@ -1067,7 +1050,6 @@ err_alloc:
             mMidBufFence[0] = -1;
         }
     }
-#endif
     {
         android::Mutex::Autolock lock(mMutex);
         mBufferFreeThread->mCondition.signal();

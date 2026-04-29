@@ -1,140 +1,105 @@
-#ifndef EXYNOS_PRIMARY_DISPLAY_H
-#define EXYNOS_PRIMARY_DISPLAY_H
+#ifndef EXYNOS_DISPLAY_H
+#define EXYNOS_DISPLAY_H
 
+#include <utils/Mutex.h>
+#include <utils/Vector.h>
 #include "ExynosHWC.h"
-#include "ExynosDisplay.h"
 
-#define S3D_ERROR -1
-#define HDMI_PRESET_DEFAULT V4L2_DV_1080P60
-#define HDMI_PRESET_ERROR -1
+#ifndef MAX_BUF_STRIDE
+#define MAX_BUF_STRIDE  4096
+#endif
 
 class ExynosMPPModule;
 
-enum regionType {
-    eTransparentRegion          =       0,
-    eCoveredOpaqueRegion        =       1,
-    eDamageRegion               =       2,
-};
-
 enum {
-    eDamageRegionFull = 0,
-    eDamageRegionPartial,
-    eDamageRegionSkip,
-    eDamageRegionError,
+    eSkipLayer                    =     0x00000001,
+    eUnsupportedPlaneAlpha        =     0x00000002,
+    eInvalidHandle                =     0x00000004,
+    eHasFloatSrcCrop              =     0x00000008,
+    eUnsupportedDstWidth          =     0x00000010,
+    eUnsupportedCoordinate        =     0x00000020,
+    eUnsupportedFormat            =     0x00000040,
+    eUnsupportedBlending          =     0x00000080,
+    eDynamicRecomposition         =     0x00000100,
+    eForceFbEnabled               =     0x00000200,
+    eSandwitchedBetweenGLES       =     0x00000400,
+    eHasPopupVideo                =     0x00000800,
+    eHasDRMVideo                  =     0x00001000,
+    eInsufficientBandwidth        =     0x00002000,
+    eInsufficientOverlapCount     =     0x00004000,
+    eInsufficientWindow           =     0x00008000,
+    eInsufficientMPP              =     0x00010000,
+    eSwitchingLocalPath           =     0x00020000,
+    eRGBLayerDuringVideoPlayback  =     0x00040000,
+    eSkipStaticLayer              =     0x00080000,
+    eNotAlignedDstPosition        =     0x00100000,
+    eUnSupportedUseCase           =     0x00200000,
+    eExceedHStrideMaximum         =     0x00400000,
+    eMPPUnsupported               =     0x40000000,
+    eUnknown                      =     0x80000000,
 };
 
-class ExynosOverlayDisplay : public ExynosDisplay {
+const struct s3cFormat {
+    uint32_t format;
+    const char *desc;
+} s3cFormat[] = {
+    {S3C_FB_PIXEL_FORMAT_RGBA_8888, "RGBA8888"},
+    {S3C_FB_PIXEL_FORMAT_RGBX_8888, "RGBX8888"},
+    {S3C_FB_PIXEL_FORMAT_RGBA_5551, "RGBA5551"},
+    {S3C_FB_PIXEL_FORMAT_RGB_565,   "RGB565"},
+    {S3C_FB_PIXEL_FORMAT_BGRA_8888, "BGRA8888"},
+    {S3C_FB_PIXEL_FORMAT_BGRX_8888, "BGRX8888"},
+};
+
+class ExynosLayerInfo {
+    public:
+        int32_t         compositionType;
+        uint32_t        mCheckOverlayFlag;
+        uint32_t        mCheckMPPFlag;
+};
+
+bool winConfigChanged(s3c_fb_win_config *c1, s3c_fb_win_config *c2);
+void dumpConfig(s3c_fb_win_config &c);
+enum s3c_fb_pixel_format halFormatToS3CFormat(int format);
+bool isFormatSupported(int format);
+enum s3c_fb_blending halBlendingToS3CBlending(int32_t blending);
+bool isBlendingSupported(int32_t blending);
+const char *s3cFormat2str(uint32_t format);
+
+class ExynosDisplay {
     public:
         /* Methods */
-        ExynosOverlayDisplay(int numGSCs, struct exynos5_hwc_composer_device_1_t *pdev);
-        ~ExynosOverlayDisplay();
+        ExynosDisplay(int numGSCs);
+        virtual ~ExynosDisplay();
 
+        virtual int getDeconWinMap(int overlayIndex, int totalOverlays);
+        virtual int inverseWinMap(int windowIndex, int totalOverlays);
         virtual int prepare(hwc_display_contents_1_t *contents);
         virtual int set(hwc_display_contents_1_t *contents);
         virtual void dump(android::String8& result);
         virtual void freeMPP();
-        virtual void handleTotalBandwidthOverload(hwc_display_contents_1_t *contents);
-
-        int clearDisplay();
-        int getCompModeSwitch();
-        int32_t getDisplayAttributes(const uint32_t attribute);
-
-        bool switchOTF(bool enable);
+        virtual void allocateLayerInfos(hwc_display_contents_1_t* contents);
+        virtual void dumpLayerInfo(android::String8& result);
+        virtual int getActiveConfig() {return 0;};
+        virtual int setActiveConfig(int __unused index) {return 0;};
 
         /* Fields */
-        ExynosMPPModule         **mMPPs;
+        int                     mDisplayFd;
+        int32_t                 mXres;
+        int32_t                 mYres;
 
-        exynos5_hwc_post_data_t  mPostData;
-        const private_module_t   *mGrallocModule;
+        int32_t                 mXdpi;
+        int32_t                 mYdpi;
+        int32_t                 mVsyncPeriod;
 
-#ifdef USE_FB_PHY_LINEAR
-        buffer_handle_t          mWinBuf[NUM_HW_WINDOWS][NUM_GSC_DST_BUFS];
-#ifdef G2D_COMPOSITION
-        int                      mG2dComposition;
-        exynos5_g2d_data_t       mG2d;
-        int                      mG2dLayers;
-        int                      mAllocatedLayers;
-        uint32_t                 mWinBufVirtualAddress[NUM_HW_WINDOWS][NUM_GSC_DST_BUFS];
-        int                      mWinBufFence[NUM_HW_WINDOWS][NUM_GSC_DST_BUFS];
-        int                      mG2dCurrentBuffer[NUM_HW_WINDOWS];
-        uint32_t	             mLastG2dLayerHandle[NUM_HW_WINDOWS];
-        uint32_t                 mWinBufMapSize[NUM_HW_WINDOWS];
-        int                      mG2dMemoryAllocated;
-        int                      mG2dBypassCount;
-#endif
-#endif
+        int                     mOtfMode;
+        bool                    mHasDrmSurface;
+        alloc_device_t          *mAllocDevice;
+        int                     mNumMPPs;
+        android::Mutex          mLayerInfoMutex;
+        android::Vector<ExynosLayerInfo *> mLayerInfos;
 
-        struct s3c_fb_win_config_data mLastConfigData;
-        size_t                   mLastFbWindow;
-        const void               *mLastHandles[NUM_HW_WINDOWS];
-        exynos5_gsc_map_t        mLastGscMap[NUM_HW_WINDOWS];
-        const void               *mLastLayerHandles[NUM_VIRT_OVER];
-        int                      mLastOverlayWindowIndex;
-        int                      mLastOverlayLayerIndex;
-        int                      mVirtualOverlayFlag;
-
-        bool                     mForceFbYuvLayer;
-        int                      mCountSameConfig;
-        /* g3d = 0, gsc = 1 */
-        int                      mConfigMode;
-        video_layer_config       mPrevDstConfig[MAX_VIDEO_LAYERS];
-
-        int                      mGscLayers;
-
-        bool                     mPopupPlayYuvContents;
-        bool                     mHasCropSurface;
-        int                      mYuvLayers;
-
-        bool                     mBypassSkipStaticLayer;
-        uint32_t                 mDmaChannelMaxBandwidth[MAX_NUM_FIMD_DMA_CH];
-        uint32_t                 mDmaChannelMaxOverlapCount[MAX_NUM_FIMD_DMA_CH];
-
-        bool                     mGscUsed;
-        int                      mCurrentGscIndex;
-        int                      mCurrentRGBMPPIndex;
-        bool                     mBlanked;
-        hwc_rect                 mFbUpdateRegion;
-        bool                     mFbNeeded;
-        size_t                   mFirstFb;
-        size_t                   mLastFb;
-        bool                     mForceFb;
-        int                      mForceOverlayLayerIndex;
-        bool                     mRetry;
-        int                      mAllowedOverlays;
-        size_t                   mMaxWindowOverlapCnt;
-
-    protected:
-        /* Methods */
-        void configureOtfWindow(hwc_rect_t &displayFrame,
-                int32_t blending, int32_t planeAlpha, int fence_fd, int format, s3c_fb_win_config &cfg);
-        void configureHandle(private_handle_t *handle, hwc_frect_t &sourceCrop,
-                hwc_rect_t &displayFrame, int32_t blending, int32_t planeAlpha, int fence_fd, s3c_fb_win_config &cfg);
-        void skipStaticLayers(hwc_display_contents_1_t *contents);
-        void determineSupportedOverlays(hwc_display_contents_1_t *contents);
-        void determineBandwidthSupport(hwc_display_contents_1_t *contents);
-        void assignWindows(hwc_display_contents_1_t *contents);
-        bool assignGscLayer(hwc_layer_1_t &layer, int index, int nextWindow);
-        void postGscOtf(hwc_layer_1_t &layer, struct s3c_fb_win_config *config, int win_map, int index);
-        void handleStaticLayers(hwc_display_contents_1_t *contents, struct s3c_fb_win_config_data &win_data, int tot_ovly_wins);
-        void cleanupGscs();
-        int handleWindowUpdate(hwc_display_contents_1_t *contents, struct s3c_fb_win_config *config);
-        unsigned int getLayerRegion(hwc_layer_1_t &layer, hwc_rect &rect_area, uint32_t regionType);
-
-        virtual void determineYuvOverlay(hwc_display_contents_1_t *contents);
-        virtual int postGscM2M(hwc_layer_1_t &layer, struct s3c_fb_win_config *config, int win_map, int index, bool isBottom);
-        virtual void forceYuvLayersToFb(hwc_display_contents_1_t *contents);
-        virtual void configureOverlay(hwc_layer_1_t *layer, s3c_fb_win_config &cfg);
-        virtual void configureDummyOverlay(hwc_layer_1_t *layer, s3c_fb_win_config &cfg);
-        virtual bool isOverlaySupported(hwc_layer_1_t &layer, size_t i);
-        virtual void refreshGscUsage(hwc_layer_1_t &layer);
-        virtual int postFrame(hwc_display_contents_1_t *contents);
-        virtual int winconfigIoctl(s3c_fb_win_config_data *win_data);
-        virtual int waitForRenderFinish(buffer_handle_t *handle, int buffers);
-        virtual void handleOffscreenRendering(hwc_layer_1_t &layer, hwc_display_contents_1_t *contents, int index);
-        virtual int getMPPForUHD(hwc_layer_1_t &layer);
-        virtual int getRGBMPPIndex(int index);
-        virtual bool multipleRGBScaling(int format);
-        virtual void checkTVBandwidth();
+        struct exynos5_hwc_composer_device_1_t *mHwc;
 };
 
 #endif

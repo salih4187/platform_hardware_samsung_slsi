@@ -32,6 +32,7 @@ LOCAL_SRC_FILES	+= 	\
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../../exynos5/include \
 	$(TOP)/hardware/samsung_slsi/exynos/include \
+	$(TOP)/hardware/samsung_slsi/graphics/base/include \
 	$(TOP)/hardware/samsung_slsi/exynos5433/mobicore/common/LogWrapper
 
 LOCAL_SHARED_LIBRARIES += libMcClient liblog

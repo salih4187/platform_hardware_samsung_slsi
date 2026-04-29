@@ -36,7 +36,11 @@ COMMON_C_INCLUDES := \
 ifeq ($(BOARD_HDMI_INCAPABLE), true)
 COMMON_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libhdmi_dummy
 else
+ifeq ($(BOARD_USES_VPP), true)
 COMMON_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libvpphdmi
+else
+COMMON_C_INCLUDES += $(TOP)/hardware/samsung_slsi/graphics/base/libhwc1/libhdmi
+endif
 endif
 
 ifeq ($(BOARD_USES_VPP), true)
@@ -107,6 +111,7 @@ LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
 LOCAL_CFLAGS += -DLOG_TAG=\"virtualdisplay\"
+LOCAL_CFLAGS += -Wno-overloaded-virtual
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 
@@ -176,13 +181,13 @@ LOCAL_CFLAGS += -DLOG_TAG=\"hdmi\"
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 
 ifeq ($(filter 3.10, $(TARGET_LINUX_KERNEL_VERSION)), 3.10)
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-3.10-headers
+LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-3.10-headers/kernel-headers
 else
 ifeq ($(filter 3.18, $(TARGET_LINUX_KERNEL_VERSION)), 3.18)
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-3.18-headers
+LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-3.18-headers/kernel-headers
 else
 ifeq ($(filter 4.4, $(TARGET_LINUX_KERNEL_VERSION)), 4.4)
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-4.4-headers
+LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-4.4-headers/kernel-headers
 else
 LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/kernel-3.4-headers
 endif
@@ -226,6 +231,7 @@ LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
 LOCAL_CFLAGS += -DLOG_TAG=\"hwcutils\"
+LOCAL_CFLAGS += -Wno-overloaded-virtual
 
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
@@ -304,6 +310,7 @@ LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 
 LOCAL_CFLAGS := $(COMMON_CFLAGS)
 LOCAL_CFLAGS += -DLOG_TAG=\"hwcomposer\"
+LOCAL_CFLAGS += -Wno-overloaded-virtual
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_C_INCLUDES += \

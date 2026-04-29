@@ -60,11 +60,7 @@ class ExynosMPP {
         virtual bool isProcessingRequired(hwc_layer_1_t &layer, int format);
         virtual int getDownscaleRatio(int *numerator, int *denominator);
         virtual int isProcessingSupported(hwc_layer_1_t &layer, int format, bool otf, int downNumerator = 1, int downDenominator = 16);
-#ifdef USES_VIRTUAL_DISPLAY
         virtual int processM2M(hwc_layer_1_t &layer, int dstFormat, hwc_frect_t *sourceCrop, bool isNeedBufferAlloc = true);
-#else
-        virtual int processM2M(hwc_layer_1_t &layer, int dstFormat, hwc_frect_t *sourceCrop);
-#endif
         virtual int processOTF(hwc_layer_1_t &layer);
         virtual void cleanupM2M();
         virtual void cleanupM2M(bool noFenceWait);
