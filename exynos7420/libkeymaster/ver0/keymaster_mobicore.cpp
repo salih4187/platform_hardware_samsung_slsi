@@ -28,7 +28,7 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 
-#include <UniquePtr.h>
+#include <keymaster/UniquePtr.h>
 
 #define LOG_TAG "ExynosKeyMaster"
 #include <cutils/log.h>
@@ -40,6 +40,8 @@
 #define RSA_SIG_MAX_SIZE	(4096 >> 3)
 #define DSA_SIG_MAX_SIZE	((256 >> 3) * 2)
 #define ECDSA_SIG_MAX_SIZE	(((521 >> 3) + 1) * 2)
+
+using keymaster::UniquePtr;
 
 struct BIGNUM_Delete {
     void operator()(BIGNUM* p) const {

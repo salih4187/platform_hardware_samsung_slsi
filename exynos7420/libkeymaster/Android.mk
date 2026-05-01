@@ -38,7 +38,8 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/ver0 \
 	$(MOBICORE_PATH)/daemon/ClientLib/public \
-	$(MOBICORE_PATH)/common/MobiCore/inc/
+	$(MOBICORE_PATH)/common/MobiCore/inc/ \
+	system/keymaster/include
 LOCAL_C_FLAGS = -fvisibility=hidden -Wall -Werror
 
 ifeq ($(BOARD_USES_KEYMASTER_VER0_3), true)
