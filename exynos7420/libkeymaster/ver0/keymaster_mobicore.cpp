@@ -717,7 +717,7 @@ static int km_get_dsa_keypair_public(uint8_t *pubkey, EVP_PKEY *pkey) {
 static int km_get_ecdsa_keypair_public(uint8_t *pubkey, EVP_PKEY *pkey) {
     teePubKeyMeta_t *meta;
     uint8_t *x, *y;
-    size_t x_len, y_len, curve_len;
+    size_t __unused x_len, __unused y_len, curve_len;
     int curve;
     int ret;
 
@@ -1353,24 +1353,24 @@ static int exynos_km_open(const hw_module_t* module, const char* name,
 }
 
 static struct hw_module_methods_t keystore_module_methods = {
-    open: exynos_km_open,
+    .open = exynos_km_open,
 };
 
 struct keystore_module HAL_MODULE_INFO_SYM
 __attribute__ ((visibility ("default"))) = {
-    common: {
-        tag: HARDWARE_MODULE_TAG,
+    .common = {
+        .tag = HARDWARE_MODULE_TAG,
 #if defined(KEYMASTER_VER0_3)
-        version_major: 3,
+        .version_major = 3,
 #else
-        version_major: 2,
+        .version_major = 2,
 #endif
-        version_minor: 0,
-        id: KEYSTORE_HARDWARE_MODULE_ID,
-        name: "Keymaster Exynos HAL",
-        author: "Samsung S.LSI",
-        methods: &keystore_module_methods,
-        dso: 0,
-        reserved: {},
+        .version_minor = 0,
+        .id = KEYSTORE_HARDWARE_MODULE_ID,
+        .name = "Keymaster Exynos HAL",
+        .author = "Samsung S.LSI",
+        .methods = &keystore_module_methods,
+        .dso = 0,
+        .reserved = {},
     },
 };

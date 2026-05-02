@@ -4,8 +4,8 @@
 #include <utils/Vector.h>
 #include "ExynosHWC.h"
 #include "ExynosDisplay.h"
-#include "../../exynos/kernel-3.10-headers/kernel-headers/videodev2.h"
-#include "../../exynos/kernel-3.10-headers/kernel-headers/v4l2-dv-timings.h"
+#include <linux/videodev2.h>
+#include "videodev2_exynos_hdmi.h"
 
 #define MAX_HDMI_VIDEO_LAYERS 1
 

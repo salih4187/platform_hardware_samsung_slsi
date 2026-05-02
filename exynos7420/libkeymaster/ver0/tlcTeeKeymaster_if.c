@@ -34,11 +34,11 @@
 
 #include "MobiCoreDriverApi.h"
 #include "tlTeeKeymaster_Api.h"
+#include "tlTeeKeymaster_log.h"
 #include "tlcTeeKeymaster_if.h"
 #include "buildTag.h"
 
 #define LOG_TAG "TlcTeeKeyMaster"
-#include "log.h"
 
 /* Global definitions */
 static const __attribute__((used)) char* buildtag = MOBICORE_COMPONENT_BUILD_TAG;
