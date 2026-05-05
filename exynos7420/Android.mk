@@ -18,7 +18,8 @@ ifeq ($(TARGET_SOC), exynos7420)
 exynos7420_dirs := \
 	mobicore \
 	libgatekeeper \
-	libkeymaster
+	libkeymaster \
+	gralloc
 
 include $(call all-named-subdir-makefiles,$(exynos7420_dirs))
 
